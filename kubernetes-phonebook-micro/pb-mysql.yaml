@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: pb-micro
+  name: pb-db-deployment
+  labels:
+    app: pbdbapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pbdbapp
+  template:
+    metadata:
+      labels:
+        app: pbdbapp
+    spec:
+      containers:
+        - name: search-db-app
+          image: mysql:5.7
+          ports:
+          - containerPort: 3306
+          envFrom:
+            - secretRef:
+                name: phonebook-secret
+            - configMapRef:
+                name: envconfigpb
+          volumeMounts:
+            - name: dbpvpb
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: dbpvpb
+          persistentVolumeClaim:
+            claimName: pbpvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: pb-micro
+  name: pb-db-service
+spec:
+  type: ClusterIP
+  selector:
+    app: pbdbapp
+  ports:
+  - port: 3306
+    targetPort: 3306
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: pb-micro
+  name: dbpv
+  labels:
+    app: mysql
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data
+  
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: pb-micro
+  name: pbpvc
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+
+

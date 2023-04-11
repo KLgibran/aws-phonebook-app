@@ -4,6 +4,6 @@ metadata:
   name: envconfigpb
   namespace: pb-micro
 data:
-  MYSQL_DATABASE_HOST: pb-db-service.pb-micro.svc.cluster.local
+  MYSQL_DATABASE_HOST: pb-db-service
   MYSQL_DATABASE: phonebook
   MYSQL_USER: admin
